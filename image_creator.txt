@@ -1,0 +1,655 @@
+// ==/UserScript==
+
+if (/support\.survivor\.com/.test(location.href)){
+    addPicturesLink();
+}
+if (/Image_List.html/.test(location.href)){}
+
+
+
+function compileAttachments(){
+    var empty = new Howl({
+        src: ['https://portal.survivor.com/plugins/scripts/resource/empty_loop_for_js_performance.ogg'],
+        volume:0.5,
+        autoplay: true, loop: true,
+    });
+    var newWindow = window.open("https://portal.survivor.com/plugins/Image_List.html");
+    console.log('flag 0');
+    try{
+        document.getElementById('l-convs').click();
+    }
+    catch(err){
+        console.log(err);
+    }
+    console.log('flag 1');
+    setTimeout(function(){
+/*        var openEmails = document.getElementsByClassName('ReqMDetails');
+        console.log('open emails');
+        console.log(openEmails);
+        */
+        var i;
+        var j;
+        console.log('flag a1');
+        var emails = document.getElementsByClassName('srreply');
+        emails = emails.concat(document.getElementsByClassName('creply'));
+        emails = emails.concat(document.getElementsByClassName('sysreply'));
+        emails = emails.concat(document.getElementsByClassName('srforward'));
+        console.log(emails);
+        console.log('flag a2');
+        var attachments = [];
+        var filename;
+        var extension;
+        var filetype;
+        var message;
+        var messageImages;
+        var dataType;
+        console.log('flag a3');
+/*
+        emails.forEach(function(item){
+            if(this.parentNode().parentNode().parentNode().parentNode().parentNode().parentNode().className.test(/ReqMDetails/)){
+            }
+            else{
+                item.click();
+            }
+        });
+        */
+
+
+        var aleadyOpenEmails = document.getElementsByClassName('ReqMDetails');
+        aleadyOpenEmails.forEach(function(item){
+            item.click();
+        });
+
+        emails.forEach(function(item){
+            item.click();
+        });
+
+        var openEmails = document.getElementsByClassName('ReqMDetails');
+
+        emails.forEach(function(item){
+            item.click();
+        });
+
+        aleadyOpenEmails.forEach(function(item){
+            item.click();
+        });
+
+
+        for(i=openEmails.length-1; i>-1; i--){
+            console.log('culling ' + i);
+            if(/_notes/.test(openEmails[i].id)){
+                console.log('removing: ');
+                console.log(openEmails[i]);
+                openEmails.splice(i,1);
+            }
+        }
+        console.log('flag c');
+        console.log(openEmails);
+
+        var headerUnSet = true;
+        try{
+            message = {
+                type: 'pagename',
+                title: document.title,
+            };
+            newWindow.postMessage(message, "https://portal.survivor.com/plugins/Image_List.html");
+            var ticketInlines = document.getElementsByClassName('RequestMailDetails')[0].getElementsByTagName('img');
+            console.log('ticketInlines');
+            console.log(ticketInlines);
+
+			if(ticketInlines.length){
+                headerUnSet = false;
+                attachments.push({
+                    url: 'header',
+                    name: '<tr class="bordered" onclick="this.nextSibling.classList.toggle(\'hiddenEmail\')"><th class="bordered" colspan="2">Inline Images from Ticket</th></tr><tr class="mailText hiddenEmail bordered"><td colspan="2">' + document.getElementsByClassName('RequestMailCenter')[0].innerText + '</td></tr>',
+                    type: 'header',
+                });
+            for(j=0; j < ticketInlines.length; j++){
+                if(/^https:\/\/support.survivor.com\/images\/attachfileicon/.test(ticketInlines[j].src)){
+                    continue;
+                }
+                else{
+                    console.log(ticketInlines[j].src);
+                }
+                //filename = ticketInlines[j].src.match(/\d*\/\d*\..{1,4}/)[0].replace('/','-');
+                filename = ticketInlines[j].src.match(/[^/]*\/[^/]*\..{1,4}$/)[0].replace('/','-');
+                console.log(filename);
+                extension = filename.match(/\..{1,4}$/)[0].toLowerCase();
+                console.log(extension);
+                attachments.push({
+//                    url: ticketInlines[j].src.replace('http://','https://'),
+                    url: ticketInlines[j].src,
+                    name: filename,
+                    type: extension,
+                });
+            }
+        }
+		}
+        catch(err){
+            console.log('unable to get inline images from summary:');
+            console.log(err);
+        }
+        console.log(attachments);
+        headerUnSet = true;
+        try{
+            var ticketAttachments = document.getElementById('Attachments').getElementsByTagName('a');
+            if(ticketAttachments.length){
+                headerUnSet = false;
+                attachments.push({
+                    url: 'header',
+                    name: '<tr class="bordered" onclick="this.nextSibling.classList.toggle(\'hiddenEmail\')"><th class="bordered" colspan="2">Ticket Attachments</th></tr><tr class="mailText hiddenEmail bordered" ><td colspan="2">' + document.getElementsByClassName('RequestMailCenter')[0].innerText + '</td></tr>',
+                    type: 'header',
+                });
+            }
+            for(j=0; j < ticketAttachments.length; j++){
+                extension=ticketAttachments[j].innerText.match(/(\..{1,4})( )/)[1].toLowerCase();
+                attachments.push({
+                    url: ticketAttachments[j].href,
+                    name: ticketAttachments[j].innerText,
+                    type: extension,
+                });
+            }
+        }
+        catch(err){
+            console.log('unable to get attachments from summary:');
+            console.log(err);
+        }
+
+        for(i=0;i < openEmails.length; i++){
+            headerUnSet = true;
+            var inline = openEmails[i].getElementsByTagName('img');
+            var atch = openEmails[i].getElementsByClassName('rv-conattach linknoul');
+//            if(inline.length || atch.length){
+            console.log(openEmails[i]);
+            message = openEmails[i].getElementsByClassName('pl35')[0].firstChild.nextSibling.innerHTML;
+            message = message.replace(/<img[^<]*webmail\.survivor[^<]*>/gi,'<i class="far fa-image fa-4x" title="Image hosted on Zimbra, can only be viewed there.  Probably a survivor logo."" alt="Image hosted on Zimbra, can only be viewed there.  Probably a survivor logo."></i>');
+            message = message.replace(/<img[^<]*>/gi,'<i class="far fa-image fa-4x"></i>');
+            var icon = 'fa-question';
+            console.log(openEmails[i].id);
+            if(/_request/.test(openEmails[i].id)){
+                icon='fa-envelope-open-text';
+            }
+            if(/_reply/.test(openEmails[i].id)){
+                icon='fa-envelope';
+            }
+                attachments.push({
+                    url: 'header',
+                    name: '<tr class="bordered" onclick="this.nextSibling.classList.toggle(\'hiddenEmail\')"><th style="border-right-style:none"class="bordered"> <i class="fas ' + icon + '"></i> ' + openEmails[i].getElementsByClassName('u-details')[0].innerText + '</th><th style="border-left-style:none;text-align:right;" class="bordered">' + openEmails[i].getElementsByClassName('rv-imghdr')[0].nextElementSibling.innerText + '</th></tr><tr class="mailText hiddenEmail bordered"><td colspan="2">' + message + '</td></tr>',
+                    type: 'header',
+                });
+
+            for(j=0; j < inline.length; j++){
+                if(/inlineimages/i.test(inline[j].src)){
+                    filename = inline[j].src.match(/\d*\/\d*\.\D{3,4}/)[0].replace('/','-');
+                    console.log('inline: ' + filename);
+                    extension = filename.match(/\..{1,4}$/)[0].toLowerCase();
+                    console.log('inline: ' + extension);
+                    attachments.push({
+                        url: inline[j].src,
+                        name: filename,
+                        type: extension,
+                    });
+                }
+            }
+            for(j=0; j < atch.length; j++){
+                if (/ATT\d{5}.txt/.test(atch[j].innerHTML)){
+                    continue; //Stripping out those
+                }
+                    filename = atch[j].innerText;
+                    console.log('attachment: ' + filename);
+                    extension = filename.match(/\..{1,4}$/)[0].toLowerCase();
+                    console.log('attachment: ' + extension);
+                    attachments.push({
+                        url: atch[j].href,
+                        name: filename,
+                        type: extension,
+                    });
+//                }
+            }
+        }
+        if(attachments.length > 0){
+            var currentParent;
+            var layoutMessage;
+            var dataMessage;
+            var dataMessage2;
+            setTimeout(function(){
+
+                setTimeout(function(){
+                    //                    newWindow.postMessage('test', "https://portal.survivor.com/plugins/Image_List.html");
+                    //                var currentHeader = newWindow.document.getElementById('anchor');
+                    var htmlString;
+                    for(i=0;i < attachments.length; i++){
+                        switch(attachments[i].type){
+                            case 'header':
+                                filetype = 'header';
+                                break;
+                            case '.jpg':
+                                filetype = 'img';
+                                break;
+                            case '.jpeg':
+                                filetype = 'img';
+                                break;
+                            case '.png':
+                                filetype = 'img';
+                                break;
+                            case '.gif':
+                                filetype = 'img';
+                                break;
+                            case '.bmp':
+                                filetype = 'img';
+                                break;
+                            case '.pdf':
+                                filetype = 'pdf';
+                                break;
+                            case '.csv':
+                                filetype = 'txt';
+                                break;
+                            case '.txt':
+                                filetype = 'txt';
+                                break;
+                            case '.doc':
+                                filetype = 'txt';
+                                break;
+                            case '.docx':
+                                filetype = 'txt';
+                                break;
+                            case '.xls':
+                                filetype = 'xls';
+                                break;
+                            case '.xlsx':
+                                filetype = 'xls';
+                                break;
+                            case '.zip':
+                                filetype = 'archive';
+                                break;
+                            case '.7z':
+                                filetype = 'archive';
+                                break;
+                            case '.rar':
+                                filetype = 'archive';
+                                break;
+                            case '.mov':
+                                filetype = 'movie';
+                                break;
+                            case '.mp4':
+                                filetype = 'movie';
+                                break;
+                            case '.avi':
+                                filetype = 'movie';
+                                break;
+                            case '.mkv':
+                                filetype = 'movie';
+                                break;
+                            case '.wma':
+                                filetype = 'movie';
+                                break;
+                            case '.mp3':
+                                filetype = 'audio';
+                                break;
+                            case '.wav':
+                                filetype = 'audio';
+                                break;
+                            case '.htm':
+                                filetype = 'code';
+                                break;
+                            case '.html':
+                                filetype = 'code';
+                                break;
+                            default:
+                                filetype = 'unknown';
+                                console.log('unknown file type: ' + attachments[i].type);
+                                break;
+                        }
+                        console.log('filetype: ' + filetype);
+                        switch(filetype){
+                            case 'header':
+                                htmlString = '<table name="anchor" style="border-color: grey; background-color: #F3F3F3; border-style: solid;  border-width: 3px;"><tbody id="table' + i + '"><tr style="font-size: 1.2em;border-bottom: 3px solid">' + attachments[i].name + '</tr></tbody></table><br>';
+                                //newWindow.postMessage(htmlString, "https://portal.survivor.com/plugins/Image_List.html");
+                                var message = {
+                                    type: 'header',
+                                    htmlString: htmlString,
+                                    parent: 'anchor',
+                                    messageText: message,
+                                    amount: attachments.length-1,
+                                };
+                                currentParent = 'table' + i;
+                                newWindow.postMessage(message, "https://portal.survivor.com/plugins/Image_List.html");
+                                break;
+                            case 'img':
+                                console.log('image');
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="img' + i + '" class="imagerow"><td id="loader' + i + '"><div class="loader" style="margin:40px">Loading...</div></td><tr id="linkimg' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><div class="arrowContainer"><button class="cRotate" name="img' + line + '_a" onclick="rotateClockwise(this.name)"><i class="fa-solid fa-arrow-rotate-right"></i></button> <button class="wRotate" name="img' + line + '_a" onclick="rotateWiddershins(this.name)"><i class="fa-solid fa-arrow-rotate-left"></i></button></div><div class="imgContainer" id="img' + line + '_c"><img class="thumb" id="img' + line + '_a" name="img' + line + '_a" onclick="toggleThumb(this.name)" src="imgSrc"></div></td><td><textarea cols="40" rows="6">' + message + '</textarea></td>';
+                                    htmlString = htmlString.replace('imgSrc', dataUrl);
+                                    dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'img'+line,
+                                        loader: 'loader' + line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkimg'+line,
+                                        loader: 'none',
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'pdf':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="pdf' + i + '" class="imagerow"></tr><tr id="linkpdf' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="pdfHref"><i class="far fa-file-pdf fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('pdfHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'pdf'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkpdf'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'txt':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="txt' + i + '" class="imagerow"></tr><tr id="linktxt' + i + '"></tr>',
+                                    parent: currentParent,
+
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="txtHref"><i class="far fa-file-alt fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('txtHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'txt'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linktxt'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'archive':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="arc' + i + '" class="imagerow"></tr><tr id="linkarc' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="arcHref"><i class="far fa-file-archive fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('arcHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'arc'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkarc' + line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'movie':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="mov' + i + '" class="imagerow"></tr><tr id="linkmov' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="movHref"><i class="far fa-file-video fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('movHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'mov'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkmov' + line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'audio':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="aud' + i + '" class="imagerow"></tr><tr id="linkaud' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="audHref"><i class="far fa-file-audio fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('audHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'arc'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkaud' + line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'xls':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="xls' + i + '" class="imagerow"></tr><tr id="linkxls' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="xlsHref"><i class="far fa-file-excel fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('xlsHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'xls'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkxls' + line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            case 'code':
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="code' + i + '" class="imagerow"></tr><tr id="linkcode' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    htmlString = '<td><a href="codeHref"><i class="far fa-file-code fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('codeHref', url);
+                                    var dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'code'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    var dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkcode' + line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                            default:
+                                layoutMessage = {
+                                    type: 'layout',
+                                    htmlString: '<tr id="unk' + i + '" class="imagerow"></tr><tr id="linkunk' + i + '"></tr>',
+                                    parent: currentParent,
+                                };
+                                newWindow.postMessage(layoutMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                toDataUrl(attachments[i], i ,function(line, dataUrl, url, title, message) {
+                                    //htmlString = '<td><a href="unkHref"><i class="fas fa-question fa-10x"></i></td><td><textarea cols="40" rows="6">' + message + '</textarea></td>';
+                                    htmlString = '<td><a href="unkHref"><i class="fas fa-question fa-10x"></i></td>';
+                                    htmlString = htmlString.replace('unkHref', url);
+                                    dataMessage = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'unk'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                                    htmlString = '<td colspan="2"><a target="_blank" href="linkHref">linkTitle</a></td>';
+                                    htmlString = htmlString.replace('linkHref', url);
+                                    htmlString = htmlString.replace('linkTitle', title);
+                                    dataMessage2 = {
+                                        type: 'data',
+                                        htmlString: htmlString,
+                                        parent: 'linkunk'+line,
+                                    };
+                                    newWindow.postMessage(dataMessage2, "https://portal.survivor.com/plugins/Image_List.html");
+                                });
+                                break;
+                        }
+
+                        if(i==attachments.length-1){
+                            empty.stop();
+                            let stopMessage = {
+                                type: 'finished',
+                                amount: 'linkunk',
+                            };
+                            //newWindow.postMessage(stopMessage, "https://portal.survivor.com/plugins/Image_List.html");
+                        }
+                    }
+                }, 2000);
+            }, 100);
+        }
+        else{
+            setTimeout(function(){
+                var htmlString = '<table name="anchor" style="border-color: red; background-color: #F3F3F3; border-style: solid;  border-width: 3px;"><tbody id="table' + i + '"><tr style="font-size: 1.2em"><th>No files found in ticket.</th></tr></tbody></table><br>';
+                var message = {
+                    htmlString: htmlString,
+                    parent: 'anchor',
+                };
+                currentParent = 'table' + i;
+                newWindow.postMessage(message, "https://portal.survivor.com/plugins/Image_List.html");
+            }, 2000);
+        }
+    }, 1000);
+}
+
+function performance_trick(){
+/*    if(empty) return empty.play();
+    var empty = new Howl({
+        src: ['https://portal.survivor.com/plugins/scripts/resource/empty_loop_for_js_performance.ogg'],
+        volume:0.5,
+        autoplay: true, loop: true,
+    });*/
+}
+
+function toDataUrl(node, line , callback) {
+    var url=node.url;
+    var xhr = new XMLHttpRequest();
+    var response = '';
+    xhr.addEventListener('error',function(){
+        if(/webmail\.survivor/.test(url)){
+            url = 'http://portal.survivor.com/plugins/scripts/resource/error-icon.png';
+            response=response + 'Domain is webmail.survivor.com - this is a Zimbra inline image, likely a SC logo.';
+        }
+        if(/confluence\.survivor/.test(url)){
+            url = 'http://portal.survivor.com/plugins/scripts/resource/error-icon.png';
+            response=response + 'Domain is confluence.survivor.com - this is likely a broken SC signature.';
+        }
+
+        if(/support\.survivor\.com/.test(url)){
+            url = 'http://portal.survivor.com/plugins/scripts/resource/error-icon.png';
+            response=response + 'Domain is support.survivor.com - this is likely a broken SC signature.';
+        }
+        callback(line, url, node.url, node.name, response);
+    });
+
+    xhr.onload = function() {
+        var reader = new FileReader();
+        reader.onloadend = function() {
+            callback(line, reader.result, node.url, node.name, response);
+        }
+        reader.readAsDataURL(xhr.response);
+    };
+    console.log(url);
+    try{
+    xhr.open('GET', url);
+    xhr.responseType = 'blob';
+    xhr.send();
+    }
+    catch(err){
+        console.log('caught error: ' + err);
+    }
+}
+
+function addPicturesLink(){
+    var targetDiv = document.getElementById('RvAcnHdr');
+    var newTable= document.createElement('table');
+    newTable.align = 'right';
+    newTable.border = 0;
+    newTable.cellpadding = 0;
+    newTable.cellspacing = 0;
+    newTable.class = 'ml10 mt7 inlineblock';
+    newTable.innerHTML = '<tbody><tr><td><div id="compileAttachments" class="acnbtn normalbold">Compile Attachments</div></td></tr></tbody>';
+    targetDiv.appendChild(newTable);
+
+    document.getElementById("compileAttachments").addEventListener("click", function() {performance_trick();compileAttachments();});
+}
